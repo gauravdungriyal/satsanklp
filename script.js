@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeLeft = 60;
     let isQuizActive = true;
     let flashcardIndex = 0;
+    let satsankalpDetails = {};
     const defaultStudents = [
         "AKANSHA RANA", "AMAN PRATAP SINGH", "AMIT TIWARI", "ARYAN TOMAR",
         "DEEPANSHI BHATT", "DOLLY VERMA", "GAURAV DUNGRIYAL", "GHANAN DIXIT",
@@ -55,6 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const addStudentBtn = document.getElementById('add-student-btn');
     const winnersContainer = document.getElementById('winners-container');
 
+    const detailTooltip = document.getElementById('detail-tooltip');
+    const tooltipTitle = document.getElementById('tooltip-title');
+    const tooltipMeaning = document.getElementById('tooltip-meaning');
+    const tooltipProcess = document.getElementById('tooltip-process');
+
     // Audio Context for synthetic sound
     const playCorrectSound = () => {
         try {
@@ -90,6 +96,31 @@ document.addEventListener('DOMContentLoaded', () => {
             initFlashcards();
         });
 
+    fetch('satsankalp_details.json')
+        .then(response => response.json())
+        .then(data => {
+            satsankalpDetails = data;
+        });
+
+    // Tooltip Mouse Follower
+    document.addEventListener('mousemove', (e) => {
+        if (!detailTooltip.classList.contains('hidden')) {
+            const x = e.clientX + 15;
+            const y = e.clientY + 15;
+
+            // Boundary checks
+            const rect = detailTooltip.getBoundingClientRect();
+            let finalX = x;
+            let finalY = y;
+
+            if (x + rect.width > window.innerWidth) finalX = e.clientX - rect.width - 15;
+            if (y + rect.height > window.innerHeight) finalY = e.clientY - rect.height - 15;
+
+            detailTooltip.style.left = finalX + 'px';
+            detailTooltip.style.top = finalY + 'px';
+        }
+    });
+
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -124,6 +155,54 @@ document.addEventListener('DOMContentLoaded', () => {
     function incrementStudentScore(index) {
         students[index].score++;
         renderStudents();
+    }
+
+    // Hover Details Logic
+    function enhanceTextWithHover(element) {
+        const text = element.textContent;
+        // Matches "नंबर X" or "सत्संकल्प X" or just "X" in specific contexts
+        // But the most reliable way is if the text contains a specific sankalp text
+        Object.keys(satsankalpDetails).forEach(id => {
+            const detail = satsankalpDetails[id];
+            // Escape special chars for regex
+            const escapedText = detail.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(escapedText, 'g');
+
+            if (text.includes(detail.text)) {
+                element.innerHTML = element.innerHTML.replace(detail.text, `<span class="hover-detail" data-id="${id}">${detail.text}</span>`);
+            }
+        });
+
+        // Also match "नंबर X"
+        const numberRegex = /नंबर\s+(\d+)/g;
+        element.innerHTML = element.innerHTML.replace(numberRegex, (match, num) => {
+            if (satsankalpDetails[num]) {
+                return `<span class="hover-detail" data-id="${num}">${match}</span>`;
+            }
+            return match;
+        });
+
+        // Add event listeners to new spans
+        const spans = element.querySelectorAll('.hover-detail');
+        spans.forEach(span => {
+            span.addEventListener('mouseenter', (e) => showHoverDetail(e, span.dataset.id));
+            span.addEventListener('mouseleave', hideHoverDetail);
+        });
+    }
+
+    function showHoverDetail(e, id) {
+        const detail = satsankalpDetails[id];
+        if (!detail) return;
+
+        tooltipTitle.textContent = `Satsankalp Details #${id}`;
+        tooltipMeaning.textContent = detail.meaning;
+        tooltipProcess.innerHTML = detail.process.map(step => `<li>${step}</li>`).join('');
+
+        detailTooltip.classList.remove('hidden');
+    }
+
+    function hideHoverDetail() {
+        detailTooltip.classList.add('hidden');
     }
 
     addStudentBtn.addEventListener('click', addStudent);
@@ -189,6 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
         explanationContainer.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
 
+        // Enhance text with hover effects after selection
+        enhanceTextWithHover(questionText);
+        buttons.forEach(btn => enhanceTextWithHover(btn));
+
         if (currentQuestionIndex === quizData.length - 1) {
             nextBtn.textContent = "See Results";
         } else {
@@ -219,6 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
         explanationText.textContent = "Time Over! " + question.explanation;
         explanationContainer.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
+
+        // Enhance text with hover effects after selection
+        enhanceTextWithHover(questionText);
+        buttons.forEach(btn => enhanceTextWithHover(btn));
     }
 
     manualTimerBtn.addEventListener('click', () => {

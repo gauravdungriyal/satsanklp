@@ -25,11 +25,19 @@
                     <label for="scholar-id">Scholar ID</label>
                     <input type="text" id="scholar-id" placeholder="Enter Scholar ID" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group password-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter Mobile Number" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" placeholder="Enter Mobile Number" required>
+                        <span id="password-toggle" class="toggle-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </div>
                 </div>
-                <button type="submit" id="login-submit-btn">Login</button>
+                <button type="submit" id="login-submit-btn">Sign In</button>
             </form>
             <p id="login-error" class="error-text hidden">Invalid Scholar ID or Password.</p>
         </div>
@@ -67,6 +75,10 @@
                     <span class="icon">🎴</span>
                     <span class="label">Flash Cards</span>
                 </button>
+                <button id="view-all-satsankalp-btn" class="action-card">
+                    <span class="icon">📜</span>
+                    <span class="label">All Satsankalp</span>
+                </button>
             </div>
 
             <div class="dashboard-footer">
@@ -86,6 +98,13 @@
                 <button id="back-to-dash-btn">← Back to Dashboard</button>
                 <h4 id="current-mode-title">Quiz Mode</h4>
             </div>
+            <!-- All Satsankalp Section -->
+            <section id="all-satsankalp-section" class="hidden">
+                <div class="satsankalp-list-container" id="satsankalp-list">
+                    <!-- Satsankalps will be injected here -->
+                </div>
+            </section>
+
             <!-- Quiz Section -->
             <section id="quiz-section" class="active">
                 <div class="quiz-header">

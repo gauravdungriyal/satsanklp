@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const scholarIdInput = document.getElementById('scholar-id');
     const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('password-toggle');
     const loginError = document.getElementById('login-error');
 
     // DOM Elements - Dashboard
@@ -54,6 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const countdownOverlay = document.getElementById('countdown-overlay');
     const countdownNumber = document.getElementById('countdown-number');
+    const viewAllSatsankalpBtn = document.getElementById('view-all-satsankalp-btn');
+    const allSatsankalpSection = document.getElementById('all-satsankalp-section');
+    const satsankalpList = document.getElementById('satsankalp-list');
+
+    // Init Password Toggle
+    passwordToggle.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        if (type === 'password') {
+            passwordToggle.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`;
+        } else {
+            passwordToggle.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="1" y1="1" x2="23" y2="23" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`;
+        }
+    });
 
     const explanationContainer = document.getElementById('explanation-container');
     const explanationText = document.getElementById('explanation-text');
@@ -244,6 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     backToDashBtn.addEventListener('click', () => {
         appContainer.classList.add('hidden');
+        allSatsankalpSection.classList.remove('active');
+        allSatsankalpSection.classList.add('hidden');
 
         // Show dashboard again
         dashboardSection.classList.remove('hidden');
@@ -251,6 +277,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clearInterval(timer);
     });
+
+    viewAllSatsankalpBtn.addEventListener('click', () => {
+        currentModeTitle.textContent = "All Satsankalp";
+
+        dashboardSection.classList.add('hidden');
+        dashboardSection.classList.remove('active');
+
+        appContainer.classList.remove('hidden');
+        allSatsankalpSection.classList.add('active');
+        allSatsankalpSection.classList.remove('hidden');
+        quizSection.classList.remove('active');
+        flashcardSection.classList.remove('active');
+        resultSection.classList.remove('active');
+
+        initAllSatsankalp();
+    });
+
+    function initAllSatsankalp() {
+        satsankalpList.innerHTML = '';
+        Object.keys(satsankalpDetails).forEach(id => {
+            const data = satsankalpDetails[id];
+            const item = document.createElement('div');
+            item.className = 'satsankalp-item-card';
+            item.innerHTML = `
+                <h2><span class="index-badge">${id}</span> SATSANKALP</h2>
+                <div class="main-text">${data.text}</div>
+                <div class="details-box">
+                    <span class="meaning-label">Meaning</span>
+                    <p class="meaning-text">${data.meaning}</p>
+                </div>
+            `;
+            satsankalpList.appendChild(item);
+        });
+    }
 
     // Quiz Logic
     function initQuiz() {
@@ -366,17 +426,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayWinners() {
-        winnersContainer.innerHTML = '<h4>Your Last Score</h4>';
-        const card = document.createElement('div');
-        card.className = 'winner-card';
-        card.innerHTML = `
-            <div class="winner-rank first">1</div>
-            <div class="winner-info">
-                <span class="winner-name">${currentUser.name}</span>
-                <span class="winner-score">${score} pts</span>
+        const scholarId = currentUser.scholar_id;
+        const bestScoreKey = `best_score_${scholarId}`;
+        let bestScore = localStorage.getItem(bestScoreKey) || 0;
+
+        if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem(bestScoreKey, bestScore);
+        }
+
+        winnersContainer.innerHTML = `
+            <div class="result-item">
+                <p class="result-label">Your Score</p>
+                <h1 class="result-score">${score}</h1>
+            </div>
+            <div class="result-item">
+                <p class="result-label">Your Best Score</p>
+                <h2 class="result-best">${bestScore}</h2>
             </div>
         `;
-        winnersContainer.appendChild(card);
     }
 
     restartBtn.addEventListener('click', () => {

@@ -13,13 +13,6 @@
     <div class="background-overlay"></div>
     
     <header>
-        <div class="quote-container">
-            <h2 id="motivational-quote">"Ham Badlenge – Yug Badlega"</h2>
-        </div>
-        <div class="mode-toggle">
-            <button id="quiz-btn" class="active">Quiz Mode</button>
-            <button id="flashcard-btn">Flashcard Mode</button>
-        </div>
     </header>
 
     <!-- Login Section -->
@@ -42,30 +35,64 @@
         </div>
     </section>
 
-    <!-- Dashboard Section -->
     <section id="dashboard-section">
-        <div class="dashboard-header">
-            <div class="student-info-card">
-                <h2 id="dash-student-name">Welcome, Student Name</h2>
-                <div class="student-meta">
-                    <span id="dash-scholar-id">ID: 123456</span> | 
-                    <span id="dash-class">Class: BCA</span> | 
-                    <span id="dash-email">email@example.com</span>
+        <div class="dashboard-wrapper">
+            <div class="dashboard-header">
+                <div class="student-info-card">
+                    <h2 id="dash-student-name">Welcome, Student Name</h2>
+                    <div class="student-meta">
+                        <span id="dash-scholar-id">ID: 123456</span> | 
+                        <span id="dash-class">Class: BCA</span> | 
+                        <span id="dash-email">email@example.com</span>
+                    </div>
                 </div>
             </div>
-            <button id="logout-btn">Logout</button>
-        </div>
 
-        <!-- Main App Container (Hidden until needed) -->
+            <!-- Assigned Satsankalp Section -->
+            <div id="assigned-satsankalp-section" class="card">
+                <h3>Your Assigned Satsankalp</h3>
+                <div id="assigned-content">
+                    <p id="assigned-text" class="highlight-text"></p>
+                    <p id="assigned-meaning"></p>
+                </div>
+            </div>
+
+            <!-- Mode Selection Actions -->
+            <div id="mode-selection-section" class="mode-actions">
+                <button id="start-quiz-action-btn" class="action-card">
+                    <span class="icon">📝</span>
+                    <span class="label">Start Quiz</span>
+                </button>
+                <button id="start-flashcard-action-btn" class="action-card">
+                    <span class="icon">🎴</span>
+                    <span class="label">Flash Cards</span>
+                </button>
+            </div>
+
+            <div class="dashboard-footer">
+                <button id="logout-btn">Logout</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Countdown Overlay -->
+    <div id="countdown-overlay" class="hidden">
+        <span id="countdown-number">3</span>
+    </div>
+
+    <!-- Main App Container (Hidden until mode selected) -->
         <main id="app-container" class="hidden">
+            <div class="app-nav-header">
+                <button id="back-to-dash-btn">← Back to Dashboard</button>
+                <h4 id="current-mode-title">Quiz Mode</h4>
+            </div>
             <!-- Quiz Section -->
             <section id="quiz-section" class="active">
                 <div class="quiz-header">
                     <span id="progress">Question 1/25</span>
                     <div class="timer-container">
                         <span id="timer-label">Time: </span>
-                        <span id="timer">60</span>
-                        <button id="manual-timer-btn">Start Timer</button>
+                        <span id="timer">15</span>
                     </div>
                 </div>
 
@@ -125,13 +152,6 @@
     </section>
 
     <footer>
-        <div class="settings">
-            <label class="switch">
-                <input type="checkbox" id="timer-toggle">
-                <span class="slider round"></span>
-            </label>
-            <span>Auto-Timer Toggle</span>
-        </div>
     </footer>
 
     <!-- Correct/Wrong UI feedback -->

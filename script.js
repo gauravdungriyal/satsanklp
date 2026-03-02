@@ -26,25 +26,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const dashEmail = document.getElementById('dash-email');
     const logoutBtn = document.getElementById('logout-btn');
 
+    // Assigned Section
+    const assignedSection = document.getElementById('assigned-satsankalp-section');
+    const assignedText = document.getElementById('assigned-text');
+    const assignedMeaning = document.getElementById('assigned-meaning');
+
+    // Mode Selection Buttons
+    const modeSelectionSection = document.getElementById('mode-selection-section');
+    const startQuizActionBtn = document.getElementById('start-quiz-action-btn');
+    const startFlashcardActionBtn = document.getElementById('start-flashcard-action-btn');
+
     // DOM Elements - App
     const appContainer = document.getElementById('app-container');
+    const backToDashBtn = document.getElementById('back-to-dash-btn');
+    const currentModeTitle = document.getElementById('current-mode-title');
     const quizSection = document.getElementById('quiz-section');
     const flashcardSection = document.getElementById('flashcard-section');
     const resultSection = document.getElementById('result-section');
-
-    const quizBtn = document.getElementById('quiz-btn');
-    const flashcardBtn = document.getElementById('flashcard-btn');
 
     const questionText = document.getElementById('question-text');
     const optionsContainer = document.getElementById('options-container');
     const nextBtn = document.getElementById('next-btn');
     const progressText = document.getElementById('progress');
     const currentScoreText = document.getElementById('current-score');
+    const timerText = document.getElementById('timer');
     const restartBtn = document.getElementById('restart-btn');
 
-    const timerText = document.getElementById('timer');
-    const timerToggle = document.getElementById('timer-toggle');
-    const manualTimerBtn = document.getElementById('manual-timer-btn');
+    const countdownOverlay = document.getElementById('countdown-overlay');
+    const countdownNumber = document.getElementById('countdown-number');
+
     const explanationContainer = document.getElementById('explanation-container');
     const explanationText = document.getElementById('explanation-text');
 
@@ -118,16 +128,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDashboard() {
         loginSection.classList.remove('active');
         dashboardSection.classList.add('active');
-        appContainer.classList.remove('hidden');
+        appContainer.classList.add('hidden'); // Ensure app is hidden initially
+
+        // Show assigned section and mode buttons
+        assignedSection.classList.remove('hidden');
+        modeSelectionSection.classList.remove('hidden');
 
         dashStudentName.textContent = `Welcome, ${currentUser.name}`;
         dashScholarId.textContent = `ID: ${currentUser.scholar_id}`;
         dashClass.textContent = `Class: ${currentUser.class}`;
         dashEmail.textContent = currentUser.email;
 
-        shuffleArray(quizData);
-        initQuiz();
-        initFlashcards();
+        displayAssignedSatsankalp();
+    }
+
+    function displayAssignedSatsankalp() {
+        // Find or create assigned satsankalp for this student
+        let assignment = localStorage.getItem(`assigned_s_${currentUser.scholar_id}`);
+        if (!assignment) {
+            // Randomly assign 1-18
+            const randomId = Math.floor(Math.random() * 18) + 1;
+            assignment = randomId.toString();
+            localStorage.setItem(`assigned_s_${currentUser.scholar_id}`, assignment);
+        }
+
+        const detail = satsankalpDetails[assignment];
+        if (detail) {
+            assignedText.textContent = ` #${assignment}: ${detail.text}`;
+            assignedMeaning.textContent = detail.meaning;
+        }
     }
 
     // Login Logic
@@ -154,6 +183,75 @@ document.addEventListener('DOMContentLoaded', () => {
         showLogin();
     });
 
+    // Start Mode Buttons
+    startQuizActionBtn.addEventListener('click', () => {
+        isQuizActive = true;
+        currentModeTitle.textContent = "Quiz Mode";
+
+        // Hide the entire dashboard section
+        dashboardSection.classList.add('hidden');
+        dashboardSection.classList.remove('active');
+
+        appContainer.classList.remove('hidden');
+        quizSection.classList.add('active');
+        flashcardSection.classList.remove('active');
+        resultSection.classList.remove('active');
+
+        shuffleArray(quizData);
+        startStartCountdown();
+    });
+
+    function startStartCountdown() {
+        countdownOverlay.classList.remove('hidden');
+        let count = 3;
+
+        const updateCount = () => {
+            countdownNumber.textContent = count > 0 ? count : "Go!";
+            countdownNumber.classList.remove('countdown-animation');
+            void countdownNumber.offsetWidth; // Trigger reflow
+            countdownNumber.classList.add('countdown-animation');
+
+            if (count < 0) {
+                setTimeout(() => {
+                    countdownOverlay.classList.add('hidden');
+                    initQuiz();
+                }, 800);
+                return;
+            }
+
+            count--;
+            setTimeout(updateCount, 1000);
+        };
+
+        updateCount();
+    }
+
+    startFlashcardActionBtn.addEventListener('click', () => {
+        isQuizActive = false;
+        currentModeTitle.textContent = "Flashcard Mode";
+
+        // Hide the entire dashboard section
+        dashboardSection.classList.add('hidden');
+        dashboardSection.classList.remove('active');
+
+        appContainer.classList.remove('hidden');
+        quizSection.classList.remove('active');
+        flashcardSection.classList.add('active');
+        resultSection.classList.remove('active');
+
+        initFlashcards();
+    });
+
+    backToDashBtn.addEventListener('click', () => {
+        appContainer.classList.add('hidden');
+
+        // Show dashboard again
+        dashboardSection.classList.remove('hidden');
+        dashboardSection.classList.add('active');
+
+        clearInterval(timer);
+    });
+
     // Quiz Logic
     function initQuiz() {
         currentQuestionIndex = 0;
@@ -176,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.appendChild(button);
         });
 
-        if (timerToggle.checked) startTimer();
+        startTimer();
     }
 
     function resetState() {
@@ -184,14 +282,46 @@ document.addEventListener('DOMContentLoaded', () => {
         nextBtn.classList.add('hidden');
         explanationContainer.classList.add('hidden');
         clearInterval(timer);
-        timeLeft = 60;
-        timerText.textContent = timeLeft;
-        manualTimerBtn.disabled = false;
+        timeLeft = 15;
+        if (timerText) {
+            timerText.textContent = timeLeft;
+            timerText.classList.remove('low-time');
+        }
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+            if (timerText) {
+                timerText.textContent = timeLeft;
+                if (timeLeft <= 5) {
+                    timerText.classList.add('low-time');
+                }
+            }
+            if (timeLeft <= 0) {
+                handleTimeout();
+            }
+        }, 1000);
+    }
+
+    function handleTimeout() {
+        clearInterval(timer);
+        const question = quizData[currentQuestionIndex];
+        const buttons = optionsContainer.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        // Highlight correct answer even on timeout
+        buttons[question.answer].classList.add('correct');
+
+        explanationText.textContent = "Time's up! " + question.explanation;
+        explanationContainer.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+        nextBtn.textContent = (currentQuestionIndex === quizData.length - 1) ? "See Results" : "Next Question";
     }
 
     function selectOption(selectedIndex) {
         clearInterval(timer);
-        manualTimerBtn.disabled = true;
+        if (timerText) timerText.classList.remove('low-time');
         const question = quizData[currentQuestionIndex];
         const buttons = optionsContainer.querySelectorAll('.option-btn');
         buttons.forEach(btn => btn.disabled = true);
@@ -216,39 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
         nextBtn.textContent = (currentQuestionIndex === quizData.length - 1) ? "See Results" : "Next Question";
     }
 
-    function startTimer() {
-        timerText.textContent = timeLeft;
-        timer = setInterval(() => {
-            timeLeft--;
-            timerText.textContent = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                autoSelectWrong();
-            }
-        }, 1000);
-    }
-
-    function autoSelectWrong() {
-        clearInterval(timer);
-        manualTimerBtn.disabled = true;
-        const question = quizData[currentQuestionIndex];
-        const buttons = optionsContainer.querySelectorAll('.option-btn');
-        buttons.forEach(btn => btn.disabled = true);
-        buttons[question.answer].classList.add('correct');
-        explanationText.textContent = "Time Over! " + question.explanation;
-        explanationContainer.classList.remove('hidden');
-        nextBtn.classList.remove('hidden');
-        enhanceTextWithHover(questionText);
-        buttons.forEach(btn => enhanceTextWithHover(btn));
-    }
-
-    manualTimerBtn.addEventListener('click', () => {
-        manualTimerBtn.disabled = true;
-        startTimer();
-    });
-
     function updateScoreDisplay() {
-        currentScoreText.textContent = score;
+        if (currentScoreText) currentScoreText.textContent = score;
     }
 
     nextBtn.addEventListener('click', () => {
@@ -267,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayWinners() {
-        winnersContainer.innerHTML = '<h4>High Scores</h4>';
+        winnersContainer.innerHTML = '<h4>Your Last Score</h4>';
         const card = document.createElement('div');
         card.className = 'winner-card';
         card.innerHTML = `
@@ -314,26 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
             flashcardIndex--;
             updateFlashcard();
         }
-    });
-
-    // Mode Switching
-    quizBtn.addEventListener('click', () => {
-        quizBtn.classList.add('active');
-        flashcardBtn.classList.remove('active');
-        quizSection.classList.add('active');
-        flashcardSection.classList.remove('active');
-        resultSection.classList.remove('active');
-        isQuizActive = true;
-    });
-
-    flashcardBtn.addEventListener('click', () => {
-        flashcardBtn.classList.add('active');
-        quizBtn.classList.remove('active');
-        flashcardSection.classList.add('active');
-        quizSection.classList.remove('active');
-        resultSection.classList.remove('active');
-        isQuizActive = false;
-        clearInterval(timer);
     });
 
     // Hover Details
@@ -385,15 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-
-    timerToggle.addEventListener('change', () => {
-        if (!timerToggle.checked && isQuizActive) {
-            clearInterval(timer);
-            timerText.textContent = "--";
-        } else if (isQuizActive && timeLeft > 0) {
-            startTimer();
-        }
-    });
 
     init();
 });

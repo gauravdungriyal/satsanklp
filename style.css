@@ -1,14 +1,64 @@
 :root {
-    --primary-color: #0066CC;
-    /* Royal Blue */
-    --secondary-color: #F0F7FF;
+    --primary-color: #335C7D;
+    /* Dark Navy/Slate Blue */
+    --secondary-color: #F8F9F5;
+    /* Off-white/Cream Background */
+    --accent-color: #A5D8FF;
     /* Light Sky Blue */
-    --accent-color: #ffffff;
-    --text-color: #1A2B3C;
-    --correct-color: #28A745;
-    --wrong-color: #DC3545;
-    --card-shadow: 0 10px 40px rgba(0, 76, 153, 0.1);
-    --glass-bg: rgba(255, 255, 255, 0.9);
+    --medium-blue: #7FAAD0;
+    /* Dusty Medium Blue */
+    --text-color: #2C3E50;
+    --correct-color: #27AE60;
+    --wrong-color: #E74C3C;
+    --card-shadow: 0 10px 30px rgba(51, 92, 125, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.95);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Countdown Overlay */
+#countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#countdown-number {
+    font-size: 8rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    text-shadow: 0 10px 30px rgba(51, 92, 125, 0.2);
+}
+
+.countdown-animation {
+    animation: countdownPulse 1s ease-in-out forwards;
+}
+
+@keyframes countdownPulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
 }
 
 * {
@@ -21,9 +71,9 @@ body {
     font-family: 'Noto Sans Devanagari', sans-serif;
     background-color: var(--secondary-color);
     color: var(--text-color);
-    line-height: 1.6;
-    font-size: 1.15rem;
-    /* Increased baseline to 'medium' */
+    line-height: 1.4;
+    font-size: 0.95rem;
+    /* Reduced baseline */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -38,53 +88,17 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(0, 102, 204, 0.05) 0%, rgba(240, 247, 255, 1) 100%);
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #E9F2F9 100%);
     z-index: -1;
 }
 
 header {
     width: 100%;
-    padding: 2rem 1rem;
+    padding: 1rem 1rem;
     text-align: center;
     max-width: 800px;
 }
 
-.quote-container {
-    margin-bottom: 2rem;
-    animation: fadeInDown 1s ease-out;
-}
-
-#motivational-quote {
-    font-size: 1.8rem;
-    /* Medium-large quote */
-    color: var(--primary-color);
-    font-weight: 700;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.mode-toggle {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.mode-toggle button {
-    padding: 0.8rem 1.5rem;
-    border: none;
-    border-radius: 30px;
-    background: var(--accent-color);
-    color: var(--primary-color);
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-}
-
-.mode-toggle button.active {
-    background: var(--primary-color);
-    color: white;
-}
 
 .app-layout {
     display: flex;
@@ -105,34 +119,61 @@ section {
     animation: fadeIn 0.5s ease;
 }
 
+#current-mode-title {
+    display: none;
+}
+
 section.active {
     display: block;
 }
 
 .card {
     background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    padding: 2.5rem;
-    box-shadow: var(--card-shadow);
-    margin-bottom: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    transition: transform 0.3s ease;
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    padding: 1.2rem;
+    box-shadow: 0 8px 30px rgba(51, 92, 125, 0.05);
+    /* Softer shadow */
+    margin-bottom: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(51, 92, 125, 0.1);
 }
 
 /* Login Styles */
+/* Login Styles */
 #login-section {
     width: 100%;
-    max-width: 500px;
-    margin: 40px auto;
+    min-height: 100vh;
+    /* Fill whole screen */
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+#login-section.active {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: inherit;
+    /* Matches the background overlay */
+    align-items: center;
+    justify-content: center;
 }
 
 .login-card {
     text-align: center;
+    max-width: 480px;
+    width: 90%;
+    /* Keep existing card styles via .card */
 }
 
 .login-card h2 {
@@ -183,7 +224,7 @@ section.active {
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+    box-shadow: 0 4px 15px rgba(51, 92, 125, 0.2);
     transition: all 0.3s;
 }
 
@@ -201,54 +242,190 @@ section.active {
 /* Dashboard Styles */
 #dashboard-section {
     width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
+    min-height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
 }
 
+#dashboard-section.active {
+    display: flex;
+}
+
+.dashboard-wrapper {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    width: 100%;
+    max-width: 950px;
+    padding: 2.5rem;
+    border-radius: 30px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    animation: fadeInScale 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+
 .dashboard-header {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    gap: 1.5rem;
-    animation: fadeInDown 0.8s ease-out;
+    justify-content: center;
+    /* Center the student info */
+    align-items: center;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+}
+
+.dashboard-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
 }
 
 .student-info-card {
     background: white;
-    padding: 1.5rem 2rem;
-    border-radius: 20px;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
     flex: 1;
     border-left: 5px solid var(--primary-color);
 }
 
 .student-info-card h2 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.8rem;
+    margin: 0 0 0.2rem 0;
+    font-size: 1.3rem;
+    /* Compact name */
     color: var(--primary-color);
 }
 
 .student-meta {
     color: #666;
-    font-size: 1rem;
+    font-size: 0.85rem;
 }
 
 #logout-btn {
-    padding: 0.8rem 1.5rem;
-    background: white;
-    color: var(--wrong-color);
-    border: 2px solid var(--wrong-color);
-    border-radius: 30px;
+    padding: 0.5rem 1.2rem;
+    background: rgba(220, 53, 69, 0.05);
+    color: #dc3545;
+    border: 1.5px solid #dc3545;
+    border-radius: 20px;
     font-weight: 700;
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 #logout-btn:hover {
-    background: var(--wrong-color);
+    background: #dc3545;
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+/* Assigned Satsankalp Styling */
+#assigned-satsankalp-section {
+    border-top: 4px solid var(--primary-color);
+    animation: slideUp 0.6s ease;
+}
+
+#assigned-satsankalp-section h3 {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.highlight-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+#assigned-meaning {
+    font-style: italic;
+    color: #444;
+}
+
+/* Mode Selection Styling */
+.mode-actions {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    animation: fadeIn 1s ease;
+}
+
+.action-card {
+    flex: 1;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--accent-color);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(51, 92, 125, 0.05);
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    background: var(--accent-color);
+    border-color: var(--medium-blue);
+}
+
+.action-card .icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.action-card .label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.app-nav-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+#back-to-dash-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+#back-to-dash-btn:hover {
+    text-decoration: underline;
 }
 
 /* Quiz Styles */
@@ -260,9 +437,8 @@ section.active {
 }
 
 #question-text {
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
-    /* Scaled up question text */
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
     text-align: center;
     font-weight: 700;
 }
@@ -274,21 +450,22 @@ section.active {
 }
 
 .option-btn {
-    padding: 1.2rem;
-    border: 2px solid #eee;
-    border-radius: 12px;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 10px;
     background: white;
     cursor: pointer;
     text-align: left;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
     font-family: inherit;
-    font-size: 1.3rem;
-    /* Scaled up option buttons */
+    font-size: 1rem;
+    color: var(--text-color);
 }
 
 .option-btn:hover:not(:disabled) {
-    border-color: var(--primary-color);
+    border-color: var(--medium-blue);
     background: var(--secondary-color);
+    transform: translateX(3px);
 }
 
 .option-btn.correct {
@@ -321,6 +498,50 @@ section.active {
     font-style: italic;
 }
 
+.timer-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(51, 92, 125, 0.05);
+    /* Very light primary blue */
+    border-radius: 20px;
+    border: 1px solid rgba(51, 92, 125, 0.1);
+}
+
+#timer-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#timer {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #dc3545;
+    /* Red for the countdown */
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+.low-time {
+    animation: pulse-red 1s infinite alternate;
+}
+
+@keyframes pulse-red {
+    from {
+        transform: scale(1);
+        text-shadow: 0 0 0 rgba(220, 53, 69, 0);
+    }
+
+    to {
+        transform: scale(1.15);
+        text-shadow: 0 0 10px rgba(220, 53, 69, 0.4);
+    }
+}
+
 .quiz-footer {
     display: flex;
     justify-content: space-between;
@@ -342,10 +563,13 @@ section.active {
 /* Flashcard Styles */
 .flashcard-container {
     perspective: 1000px;
-    width: 100%;
-    height: 350px;
+    width: 95vw;
+    max-width: 800px;
+    /* Increased from default */
+    height: 400px;
+    /* Slightly taller for better proportions */
     cursor: pointer;
-    margin-bottom: 2rem;
+    margin: 0 auto 2rem auto;
 }
 
 .flashcard-inner {
@@ -384,10 +608,9 @@ section.active {
 
 .flashcard-front p,
 .flashcard-back p {
-    font-size: 1.8rem;
-    /* Scaled up flashcard text */
+    font-size: 1.3rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .flashcard-front small,
@@ -400,6 +623,9 @@ section.active {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 95vw;
 }
 
 .flashcard-controls button {

@@ -22,8 +22,42 @@
         </div>
     </header>
 
-    <div class="app-layout">
-        <main id="app-container">
+    <!-- Login Section -->
+    <section id="login-section" class="active">
+        <div class="card login-card">
+            <h2>Student Login</h2>
+            <p>Enter your Scholar ID and Password (Mobile Number) to access your dashboard.</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="scholar-id">Scholar ID</label>
+                    <input type="text" id="scholar-id" placeholder="Enter Scholar ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter Mobile Number" required>
+                </div>
+                <button type="submit" id="login-submit-btn">Login</button>
+            </form>
+            <p id="login-error" class="error-text hidden">Invalid Scholar ID or Password.</p>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard-section">
+        <div class="dashboard-header">
+            <div class="student-info-card">
+                <h2 id="dash-student-name">Welcome, Student Name</h2>
+                <div class="student-meta">
+                    <span id="dash-scholar-id">ID: 123456</span> | 
+                    <span id="dash-class">Class: BCA</span> | 
+                    <span id="dash-email">email@example.com</span>
+                </div>
+            </div>
+            <button id="logout-btn">Logout</button>
+        </div>
+
+        <!-- Main App Container (Hidden until needed) -->
+        <main id="app-container" class="hidden">
             <!-- Quiz Section -->
             <section id="quiz-section" class="active">
                 <div class="quiz-header">
@@ -88,21 +122,7 @@
                 </div>
             </section>
         </main>
-
-        <!-- Student Tracker Sidebar -->
-        <aside id="student-sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h3>Student Scores</h3>
-                <button id="add-student-btn" title="Add Student">+</button>
-            </div>
-            <div id="students-list" class="students-list">
-                <!-- Students will be injected here -->
-            </div>
-            <div class="sidebar-help">
-                <small>Click name to increase score</small>
-            </div>
-        </aside>
-    </div>
+    </section>
 
     <footer>
         <div class="settings">

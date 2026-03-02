@@ -109,11 +109,143 @@ section.active {
 .card {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 2rem;
+    border-radius: 24px;
+    padding: 2.5rem;
     box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Login Styles */
+#login-section {
+    width: 100%;
+    max-width: 500px;
+    margin: 40px auto;
+}
+
+.login-card {
+    text-align: center;
+}
+
+.login-card h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.login-card p {
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    text-align: left;
     margin-bottom: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+}
+
+#login-submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+    transition: all 0.3s;
+}
+
+#login-submit-btn:hover {
+    background: #0052a3;
+    transform: translateY(-2px);
+}
+
+.error-text {
+    color: var(--wrong-color);
+    margin-top: 1rem;
+    font-weight: 600;
+}
+
+/* Dashboard Styles */
+#dashboard-section {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.student-info-card {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    border-left: 5px solid var(--primary-color);
+}
+
+.student-info-card h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+.student-meta {
+    color: #666;
+    font-size: 1rem;
+}
+
+#logout-btn {
+    padding: 0.8rem 1.5rem;
+    background: white;
+    color: var(--wrong-color);
+    border: 2px solid var(--wrong-color);
+    border-radius: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#logout-btn:hover {
+    background: var(--wrong-color);
+    color: white;
 }
 
 /* Quiz Styles */

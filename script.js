@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State
     let quizData = [];
+    let studentsData = [];
+    let currentUser = null;
     let currentQuestionIndex = 0;
     let score = 0;
     let timer;
@@ -8,23 +10,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let isQuizActive = true;
     let flashcardIndex = 0;
     let satsankalpDetails = {};
-    const defaultStudents = [
-        "AKANSHA RANA", "AMAN PRATAP SINGH", "AMIT TIWARI", "ARYAN TOMAR",
-        "DEEPANSHI BHATT", "DOLLY VERMA", "GAURAV DUNGRIYAL", "GHANAN DIXIT",
-        "GOURAV KUMAR", "MINAKSHI KUMARI", "MUKUND THAKUR", "PRAGYA MAURYA",
-        "SAKSHI BANKHEDE", "SAKSHI PAL", "SANSKRITI AGRAWAL", "SAROJ PODDAR",
-        "SNEHA PAL", "ADITYA SONI", "ASHUTOSH KUMAR", "AYUSH RAM TRIPATHI",
-        "BHASKAR MALL", "GOURI", "KANAK SHARMA", "KULDEEP SINGH",
-        "MIKKI JAISWAL", "NISHA BHARTI", "PRAGYA GUPTA", "PRATIK KUMAR SAH",
-        "RESHAB KHATIWADA", "SAYON KOLEY", "SHREYA KASHYAP", "SHREYA SINGH",
-        "SONU RATHOR", "SUDHANSHU BELWAL", "YADEV SINGH NISHAD"
-    ].map(name => ({ name, score: 0 }));
 
-    // Always start with the 35 default names and reset scores to 0 on refresh
-    let students = [...defaultStudents];
-    let highScore = localStorage.getItem('satsankalpHighScore') || 0;
+    // DOM Elements - Login
+    const loginSection = document.getElementById('login-section');
+    const loginForm = document.getElementById('login-form');
+    const scholarIdInput = document.getElementById('scholar-id');
+    const passwordInput = document.getElementById('password');
+    const loginError = document.getElementById('login-error');
 
-    // DOM Elements
+    // DOM Elements - Dashboard
+    const dashboardSection = document.getElementById('dashboard-section');
+    const dashStudentName = document.getElementById('dash-student-name');
+    const dashScholarId = document.getElementById('dash-scholar-id');
+    const dashClass = document.getElementById('dash-class');
+    const dashEmail = document.getElementById('dash-email');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // DOM Elements - App
+    const appContainer = document.getElementById('app-container');
     const quizSection = document.getElementById('quiz-section');
     const flashcardSection = document.getElementById('flashcard-section');
     const resultSection = document.getElementById('result-section');
@@ -52,162 +55,106 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevFcBtn = document.getElementById('prev-fc-btn');
     const nextFcBtn = document.getElementById('next-fc-btn');
 
-    const studentsList = document.getElementById('students-list');
-    const addStudentBtn = document.getElementById('add-student-btn');
     const winnersContainer = document.getElementById('winners-container');
-
     const detailTooltip = document.getElementById('detail-tooltip');
     const tooltipTitle = document.getElementById('tooltip-title');
     const tooltipMeaning = document.getElementById('tooltip-meaning');
     const tooltipProcess = document.getElementById('tooltip-process');
 
-    // Audio Context for synthetic sound
+    // Audio Context
     const playCorrectSound = () => {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
-
             gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-
             oscillator.start();
             oscillator.stop(audioCtx.currentTime + 0.5);
         } catch (e) {
-            console.log('Audio not supported or blocked');
+            console.log('Audio not supported');
         }
     };
 
-    // Load Data
-    renderStudents();
-    fetch('quiz.json')
-        .then(response => response.json())
-        .then(data => {
-            quizData = data;
-            shuffleArray(quizData); // Shuffle questions on load
-            initQuiz();
-            initFlashcards();
-        });
+    // Initialization
+    async function init() {
+        try {
+            const [studentsRes, quizRes, detailsRes] = await Promise.all([
+                fetch('students.json'),
+                fetch('quiz.json'),
+                fetch('satsankalp_details.json')
+            ]);
+            studentsData = await studentsRes.json();
+            quizData = await quizRes.json();
+            satsankalpDetails = await detailsRes.json();
 
-    fetch('satsankalp_details.json')
-        .then(response => response.json())
-        .then(data => {
-            satsankalpDetails = data;
-        });
+            checkSession();
+        } catch (err) {
+            console.error("Error loading data:", err);
+        }
+    }
 
-    // Tooltip Mouse Follower
-    document.addEventListener('mousemove', (e) => {
-        if (!detailTooltip.classList.contains('hidden')) {
-            const x = e.clientX + 15;
-            const y = e.clientY + 15;
+    function checkSession() {
+        const savedUser = localStorage.getItem('satsankalp_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            showDashboard();
+        } else {
+            showLogin();
+        }
+    }
 
-            // Boundary checks
-            const rect = detailTooltip.getBoundingClientRect();
-            let finalX = x;
-            let finalY = y;
+    function showLogin() {
+        loginSection.classList.add('active');
+        dashboardSection.classList.remove('active');
+        appContainer.classList.add('hidden');
+    }
 
-            if (x + rect.width > window.innerWidth) finalX = e.clientX - rect.width - 15;
-            if (y + rect.height > window.innerHeight) finalY = e.clientY - rect.height - 15;
+    function showDashboard() {
+        loginSection.classList.remove('active');
+        dashboardSection.classList.add('active');
+        appContainer.classList.remove('hidden');
 
-            detailTooltip.style.left = finalX + 'px';
-            detailTooltip.style.top = finalY + 'px';
+        dashStudentName.textContent = `Welcome, ${currentUser.name}`;
+        dashScholarId.textContent = `ID: ${currentUser.scholar_id}`;
+        dashClass.textContent = `Class: ${currentUser.class}`;
+        dashEmail.textContent = currentUser.email;
+
+        shuffleArray(quizData);
+        initQuiz();
+        initFlashcards();
+    }
+
+    // Login Logic
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const scholarId = scholarIdInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        const user = studentsData.find(s => s.scholar_id === scholarId && s.password === password);
+
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('satsankalp_user', JSON.stringify(user));
+            loginError.classList.add('hidden');
+            showDashboard();
+        } else {
+            loginError.classList.remove('hidden');
         }
     });
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('satsankalp_user');
+        currentUser = null;
+        showLogin();
+    });
 
-    // Student Management
-    function renderStudents() {
-        studentsList.innerHTML = '';
-        students.forEach((student, index) => {
-            const item = document.createElement('div');
-            item.className = 'student-item';
-            item.innerHTML = `
-                <span class="student-name">${student.name}</span>
-                <span class="student-score">${student.score}</span>
-            `;
-            item.addEventListener('click', () => incrementStudentScore(index));
-            studentsList.appendChild(item);
-        });
-        // Removed LocalStorage persistence to ensure changes disappear on refresh
-    }
-
-    function addStudent() {
-        const name = prompt("Enter student name:");
-        if (name && name.trim()) {
-            students.push({ name: name.trim(), score: 0 });
-            renderStudents();
-        }
-    }
-
-    function incrementStudentScore(index) {
-        students[index].score++;
-        renderStudents();
-    }
-
-    // Hover Details Logic
-    function enhanceTextWithHover(element) {
-        const text = element.textContent;
-        // Matches "नंबर X" or "सत्संकल्प X" or just "X" in specific contexts
-        // But the most reliable way is if the text contains a specific sankalp text
-        Object.keys(satsankalpDetails).forEach(id => {
-            const detail = satsankalpDetails[id];
-            // Escape special chars for regex
-            const escapedText = detail.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(escapedText, 'g');
-
-            if (text.includes(detail.text)) {
-                element.innerHTML = element.innerHTML.replace(detail.text, `<span class="hover-detail" data-id="${id}">${detail.text}</span>`);
-            }
-        });
-
-        // Also match "नंबर X"
-        const numberRegex = /नंबर\s+(\d+)/g;
-        element.innerHTML = element.innerHTML.replace(numberRegex, (match, num) => {
-            if (satsankalpDetails[num]) {
-                return `<span class="hover-detail" data-id="${num}">${match}</span>`;
-            }
-            return match;
-        });
-
-        // Add event listeners to new spans
-        const spans = element.querySelectorAll('.hover-detail');
-        spans.forEach(span => {
-            span.addEventListener('mouseenter', (e) => showHoverDetail(e, span.dataset.id));
-            span.addEventListener('mouseleave', hideHoverDetail);
-        });
-    }
-
-    function showHoverDetail(e, id) {
-        const detail = satsankalpDetails[id];
-        if (!detail) return;
-
-        tooltipTitle.textContent = `Satsankalp Details #${id}`;
-        tooltipMeaning.textContent = detail.meaning;
-        tooltipProcess.innerHTML = detail.process.map(step => `<li>${step}</li>`).join('');
-
-        detailTooltip.classList.remove('hidden');
-    }
-
-    function hideHoverDetail() {
-        detailTooltip.classList.add('hidden');
-    }
-
-    addStudentBtn.addEventListener('click', addStudent);
-
-    // Initialize Quiz
+    // Quiz Logic
     function initQuiz() {
         currentQuestionIndex = 0;
         score = 0;
@@ -229,15 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.appendChild(button);
         });
 
-        if (timerToggle.checked) {
-            startTimer();
-        }
+        if (timerToggle.checked) startTimer();
     }
 
     function resetState() {
-        while (optionsContainer.firstChild) {
-            optionsContainer.removeChild(optionsContainer.firstChild);
-        }
+        while (optionsContainer.firstChild) optionsContainer.removeChild(optionsContainer.firstChild);
         nextBtn.classList.add('hidden');
         explanationContainer.classList.add('hidden');
         clearInterval(timer);
@@ -251,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
         manualTimerBtn.disabled = true;
         const question = quizData[currentQuestionIndex];
         const buttons = optionsContainer.querySelectorAll('.option-btn');
-
         buttons.forEach(btn => btn.disabled = true);
 
         if (selectedIndex === question.answer) {
@@ -268,15 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
         explanationContainer.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
 
-        // Enhance text with hover effects after selection
         enhanceTextWithHover(questionText);
         buttons.forEach(btn => enhanceTextWithHover(btn));
 
-        if (currentQuestionIndex === quizData.length - 1) {
-            nextBtn.textContent = "See Results";
-        } else {
-            nextBtn.textContent = "Next Question";
-        }
+        nextBtn.textContent = (currentQuestionIndex === quizData.length - 1) ? "See Results" : "Next Question";
     }
 
     function startTimer() {
@@ -298,12 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const buttons = optionsContainer.querySelectorAll('.option-btn');
         buttons.forEach(btn => btn.disabled = true);
         buttons[question.answer].classList.add('correct');
-
         explanationText.textContent = "Time Over! " + question.explanation;
         explanationContainer.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
-
-        // Enhance text with hover effects after selection
         enhanceTextWithHover(questionText);
         buttons.forEach(btn => enhanceTextWithHover(btn));
     }
@@ -317,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentScoreText.textContent = score;
     }
 
-    // Navigation
     nextBtn.addEventListener('click', () => {
         currentQuestionIndex++;
         if (currentQuestionIndex < quizData.length) {
@@ -330,44 +263,57 @@ document.addEventListener('DOMContentLoaded', () => {
     function showResults() {
         quizSection.classList.remove('active');
         resultSection.classList.add('active');
-
-        // Hide personal score logic as requested, focusing on student winners
         displayWinners();
     }
 
     function displayWinners() {
-        winnersContainer.innerHTML = '<h4>Winner List (Leaderboard)</h4>';
-        const sortedStudents = [...students].sort((a, b) => b.score - a.score);
-        const top3 = sortedStudents.slice(0, 3);
-
-        if (top3.length === 0) {
-            winnersContainer.innerHTML += '<p>No students added.</p>';
-            return;
-        }
-
-        const ranks = ['first', 'second', 'third'];
-
-        top3.forEach((student, index) => {
-            const card = document.createElement('div');
-            card.className = 'winner-card';
-            card.innerHTML = `
-                <div class="winner-rank ${ranks[index]}">${index + 1}</div>
-                <div class="winner-info">
-                    <span class="winner-name">${student.name}</span>
-                    <span class="winner-score">${student.score} pts</span>
-                </div>
-            `;
-            winnersContainer.appendChild(card);
-        });
+        winnersContainer.innerHTML = '<h4>High Scores</h4>';
+        const card = document.createElement('div');
+        card.className = 'winner-card';
+        card.innerHTML = `
+            <div class="winner-rank first">1</div>
+            <div class="winner-info">
+                <span class="winner-name">${currentUser.name}</span>
+                <span class="winner-score">${score} pts</span>
+            </div>
+        `;
+        winnersContainer.appendChild(card);
     }
 
     restartBtn.addEventListener('click', () => {
         resultSection.classList.remove('active');
         quizSection.classList.add('active');
-        // Reset student scores for a new round
-        students.forEach(s => s.score = 0);
-        renderStudents();
         initQuiz();
+    });
+
+    // Flashcard Logic
+    function initFlashcards() {
+        flashcardIndex = 0;
+        updateFlashcard();
+    }
+
+    function updateFlashcard() {
+        const data = quizData[flashcardIndex];
+        fcFrontText.textContent = data.question;
+        fcBackText.textContent = data.explanation;
+        fcProgressText.textContent = `Card ${flashcardIndex + 1}/${quizData.length}`;
+        flashcard.classList.remove('flipped');
+    }
+
+    flashcard.addEventListener('click', () => flashcard.classList.toggle('flipped'));
+    nextFcBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (flashcardIndex < quizData.length - 1) {
+            flashcardIndex++;
+            updateFlashcard();
+        }
+    });
+    prevFcBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (flashcardIndex > 0) {
+            flashcardIndex--;
+            updateFlashcard();
+        }
     });
 
     // Mode Switching
@@ -390,48 +336,64 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timer);
     });
 
-    // Flashcard Logic
-    function initFlashcards() {
-        flashcardIndex = 0;
-        updateFlashcard();
+    // Hover Details
+    function enhanceTextWithHover(element) {
+        const text = element.textContent;
+        Object.keys(satsankalpDetails).forEach(id => {
+            const detail = satsankalpDetails[id];
+            if (text.includes(detail.text)) {
+                element.innerHTML = element.innerHTML.replace(detail.text, `<span class="hover-detail" data-id="${id}">${detail.text}</span>`);
+            }
+        });
+        const spans = element.querySelectorAll('.hover-detail');
+        spans.forEach(span => {
+            span.addEventListener('mouseenter', (e) => showHoverDetail(e, span.dataset.id));
+            span.addEventListener('mouseleave', hideHoverDetail);
+        });
     }
 
-    function updateFlashcard() {
-        const data = quizData[flashcardIndex];
-        // We use the same data but show as flashcards
-        fcFrontText.textContent = data.question;
-        fcBackText.textContent = data.explanation;
-        fcProgressText.textContent = `Card ${flashcardIndex + 1}/${quizData.length}`;
-        flashcard.classList.remove('flipped');
+    function showHoverDetail(e, id) {
+        const detail = satsankalpDetails[id];
+        if (!detail) return;
+        tooltipTitle.textContent = `Satsankalp Details #${id}`;
+        tooltipMeaning.textContent = detail.meaning;
+        tooltipProcess.innerHTML = detail.process.map(step => `<li>${step}</li>`).join('');
+        detailTooltip.classList.remove('hidden');
     }
 
-    flashcard.addEventListener('click', () => {
-        flashcard.classList.toggle('flipped');
-    });
+    function hideHoverDetail() {
+        detailTooltip.classList.add('hidden');
+    }
 
-    nextFcBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (flashcardIndex < quizData.length - 1) {
-            flashcardIndex++;
-            updateFlashcard();
+    document.addEventListener('mousemove', (e) => {
+        if (!detailTooltip.classList.contains('hidden')) {
+            const x = e.clientX + 15;
+            const y = e.clientY + 15;
+            const rect = detailTooltip.getBoundingClientRect();
+            let finalX = x;
+            let finalY = y;
+            if (x + rect.width > window.innerWidth) finalX = e.clientX - rect.width - 15;
+            if (y + rect.height > window.innerHeight) finalY = e.clientY - rect.height - 15;
+            detailTooltip.style.left = finalX + 'px';
+            detailTooltip.style.top = finalY + 'px';
         }
     });
 
-    prevFcBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (flashcardIndex > 0) {
-            flashcardIndex--;
-            updateFlashcard();
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-    });
+    }
 
     timerToggle.addEventListener('change', () => {
         if (!timerToggle.checked && isQuizActive) {
             clearInterval(timer);
             timerText.textContent = "--";
         } else if (isQuizActive && timeLeft > 0) {
-            // Restart if turned back on during active question
             startTimer();
         }
     });
+
+    init();
 });
